@@ -51,6 +51,11 @@ jobs:
           severity: 'HIGH,CRITICAL'
           ignore-unfixed: true
 
+      - name: Tag the Image 
+        run: |
+        IMAGE_TAG=${{ github.sha }}
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devsecops-backend:$IMAGE_TAG .
+
       - name: Login to Dockerhub
         uses: docker/login-action@v3
         with: 
