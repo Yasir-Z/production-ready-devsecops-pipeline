@@ -42,7 +42,7 @@ jobs:
         run: docker build -t devsecops-backend:v1 .    
 
       - name: Scan the built image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with: 
           image-ref: devsecops-backend:v1
           format: 'sarif'
@@ -50,3 +50,10 @@ jobs:
           exit-code: '1'
           severity: 'HIGH,CRITICAL'
           ignore-unfixed: true
+
+      - name: Login to Dockerhub
+        uses: docker/login-action@v3
+        with: 
+          username: ${{ secret.DOCKERHUB_USERNAME }}
+          password: ${{ secret.DOCKERHUB_TOKEN }}
+          
