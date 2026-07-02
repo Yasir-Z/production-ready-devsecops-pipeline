@@ -64,6 +64,6 @@ jobs:
           docker tag devsecops-backend:v1 ${{ secrets.DOCKERHUB_USERNAME }}/devsecops-backend:$IMAGE_TAG
      
       - name: Push Image to Dockerhub
-        run : docker push ${{ secrets.DOCKERHUB_USERNAME }}/devsecops-backend:$IMAGE_TAG
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/devsecops-backend:$IMAGE_TAG
 
 
