@@ -42,10 +42,11 @@ jobs:
         run: docker build -t devsecops-backend:v1 .    
 
       - name: Scan the built image
-        uses: aquasecurity/trivy-action@v0.72.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with: 
           image-ref: devsecops-backend:v1
           format: 'sarif'
+          trivy-version: 'v0.72.0'
           output: 'trivy-results.sarif'
           exit-code: '1'
           severity: 'HIGH,CRITICAL'
