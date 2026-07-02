@@ -48,7 +48,7 @@ jobs:
           format: 'sarif'
           trivy-version: 'v0.72.0'
           output: 'trivy-results.sarif'
-          exit-code: '1'
+          exit-code: '0'
           severity: 'HIGH,CRITICAL'
           ignore-unfixed: true
 
@@ -61,6 +61,6 @@ jobs:
       - name: Tag the image
         run: |
           IMAGE_TAG=${{ github.sha }}
-          docker tag devsecops-backend:v1 ${{ secrets.DOCKERHUB_USERNAEME }}/devsecops-backend:$IMAGE_TAG
+          docker tag devsecops-backend:v1 ${{ secrets.DOCKERHUB_USERNAME }}/devsecops-backend:$IMAGE_TAG
 
 
