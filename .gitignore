@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+.venv/
+
+# Environment variables / secrets
+.env
+*.env
+
+# Flask
+instance/
+.flaskenv
+
+# IDE / editor files
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Kubernetes secrets (agar koi local secret file ho)
+*.secret.yaml
