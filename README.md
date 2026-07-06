@@ -10,7 +10,52 @@ The primary objective of this project is to implement secure software delivery b
 
 # Architecture
 
-![Architecture Diagram](images/architecture.png)
+Architecture Diagram
+
+                    Developer
+                        │
+                  git push
+                        │
+                        ▼
+              GitHub Repository
+                        │
+                        ▼
+              GitHub Actions CI
+                        │
+        ┌───────────────┼────────────────┐
+        ▼               ▼                ▼
+     Pytest          Bandit         pip-audit
+        │               │                │
+        └───────────────┼────────────────┘
+                        ▼
+                  Gitleaks Scan
+                        │
+                        ▼
+                 Docker Build
+                        │
+                        ▼
+                 Trivy Scan
+                        │
+              HIGH/CRITICAL?
+                 │          │
+               YES          NO
+                │            ▼
+           Pipeline Fails  Docker Hub
+                              │
+                              ▼
+                     Kubernetes Cluster
+                              │
+                         Deployment
+                              │
+                     ┌────────┴────────┐
+                     ▼                 ▼
+                  Pod 1             Pod 2
+                     ▲                 ▲
+                     └──── Service ────┘
+                              ▲
+                           Ingress
+                              ▲
+                           Internet
 
 The deployment flow follows this architecture:
 
@@ -185,7 +230,7 @@ devsecops-portfolio/
 Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Yasir-Z/devsecops-portfolio.git
 ```
 
 Build the Docker image:
