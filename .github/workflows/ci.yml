@@ -5,7 +5,7 @@ on:
       - main
 
 jobs:
-  Flask-App Pipeline:
+  flask-app-pipeline:
     runs-on: ubuntu-latest
 
     steps:
