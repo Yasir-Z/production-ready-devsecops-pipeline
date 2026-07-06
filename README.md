@@ -230,7 +230,7 @@ devsecops-portfolio/
 Clone the repository:
 
 ```bash
-git clone https://github.com/Yasir-Z/devsecops-portfolio.git
+git clone https://github.com/Yasir-Z/production-ready-devsecops-pipeline.git
 ```
 
 Build the Docker image:
