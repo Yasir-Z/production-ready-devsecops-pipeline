@@ -1,14 +1,36 @@
-# DevSecOps Portfolio Project
+# DevSecOps Portfolio – Secure CI/CD Pipeline with Docker, GitHub Actions & Kubernetes
 
-## Project Overview
+An end-to-end DevSecOps project demonstrating secure software delivery using automated testing, security scanning, containerization, and Kubernetes deployment.
 
-This project demonstrates a complete end-to-end DevSecOps CI/CD pipeline for a Python Flask application. The pipeline automates testing, security scanning, containerization, image vulnerability scanning, publishing to Docker Hub, and deployment to Kubernetes.
+## Project Highlights
 
-The primary objective of this project is to implement secure software delivery by integrating automated security checks throughout the CI/CD pipeline while following DevSecOps best practices.
+* Automated CI pipeline using GitHub Actions
+
+* Unit testing with Pytest
+
+* Static Application Security Testing (SAST) using Bandit
+
+* Dependency vulnerability scanning using pip-audit
+
+* Secret detection using Gitleaks
+
+* Docker image vulnerability scanning using Trivy
+
+* Secure Docker image publishing to Docker Hub
+
+* Kubernetes deployment with rolling updates
+
+* Liveness and Readiness Probes
+
+* ConfigMaps and Secrets for configuration management
+
+* Ingress for external application access
+
+* Fail-fast pipeline to stop insecure or broken builds
 
 ---
 
-# Architecture
+## Architecture
 
 Architecture Diagram
 
@@ -63,7 +85,15 @@ Developer → GitHub → GitHub Actions → Security Gates → Docker Build → 
 
 ---
 
-# Technology Stack
+## Business Problem
+
+Manual deployments are slow, error-prone, and difficult to audit. Security checks are often performed late in the software delivery lifecycle, increasing the risk of deploying vulnerable applications.
+
+This project demonstrates how DevSecOps practices can automate testing, security validation, containerization, and deployment while reducing deployment risk and improving software quality.
+
+---
+
+## Technology Stack
 
 ### Application
 
@@ -102,49 +132,49 @@ Developer → GitHub → GitHub Actions → Security Gates → Docker Build → 
 
 The GitHub Actions workflow performs the following stages automatically whenever code is pushed to the `main` branch.
 
-## 1. Checkout Repository
+### 1. Checkout Repository
 
 Downloads the latest source code onto the GitHub Actions runner.
 
-## 2. Setup Python
+### 2. Setup Python
 
 Installs Python 3.12.
 
-## 3. Install Dependencies
+### 3. Install Dependencies
 
 Installs all project dependencies from `requirements.txt`.
 
-## 4. Run Unit Tests
+### 4. Run Unit Tests
 
 Executes Pytest to ensure the application functions correctly before continuing.
 
-## 5. Static Application Security Testing (SAST)
+### 5. Static Application Security Testing (SAST)
 
 Bandit scans the Python source code for common security issues.
 
-## 6. Dependency Vulnerability Scan
+### 6. Dependency Vulnerability Scan
 
 pip-audit checks installed Python packages for known CVEs.
 
-## 7. Secret Detection
+### 7. Secret Detection
 
 Gitleaks scans the repository to prevent accidental exposure of credentials or secrets.
 
-## 8. Docker Image Build
+### 8. Docker Image Build
 
 Builds a Docker image only after all previous quality and security gates have passed.
 
-## 9. Container Image Scan
+### 9. Container Image Scan
 
 Trivy scans the Docker image for HIGH and CRITICAL vulnerabilities.
 
-## 10. Publish Docker Image
+### 10. Publish Docker Image
 
 The validated image is tagged with the Git commit SHA and pushed to Docker Hub.
 
 ---
 
-# Security Controls
+# Security Gates
 
 This project implements multiple automated security gates.
 
@@ -209,7 +239,7 @@ Production-oriented practices demonstrated include:
 
 ---
 
-# 📂 Project Structure
+# Project Structure
 
 ```text
 devsecops-portfolio/
@@ -253,6 +283,30 @@ kubectl apply -f k8s/
 
 ---
 
+## Skills Demonstrated
+
+* DevSecOps
+
+* CI/CD Pipeline Design
+
+* Docker Containerization
+
+* Kubernetes Deployment
+
+* GitHub Actions Automation
+
+* Secure Software Delivery
+
+* Infrastructure Automation
+
+* Application Security
+
+* Vulnerability Management
+
+* Container Security
+
+---
+
 # Future Improvements
 
 * Terraform for infrastructure provisioning
@@ -264,6 +318,6 @@ kubectl apply -f k8s/
 
 ---
 
-# Yasir Zafar
+### Author: Yasir Zafar
 
-Built as a practical DevSecOps portfolio project demonstrating secure CI/CD pipelines, Docker, Kubernetes, and automated security scanning.
+This project was built to demonstrate practical DevSecOps skills by integrating automated testing, security scanning, containerization, and Kubernetes deployment into a production-inspired CI/CD workflow.
