@@ -6,3 +6,4 @@ metadata:
 data:
   APP_NAME: "DevSecOps Portfolio"
   LOG_LEVEL: "INFO"
+  My_Flask_App: "true"

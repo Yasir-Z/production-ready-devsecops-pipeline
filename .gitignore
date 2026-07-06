@@ -28,3 +28,5 @@ Thumbs.db
 
 # Kubernetes secrets (agar koi local secret file ho)
 *.secret.yaml
+kubectl
+kubectl.sha256

@@ -4,25 +4,21 @@ metadata:
   name: backend-deployment
   labels:
     app: backend
-
 spec:
   replicas: 2
   selector:
     matchLabels:
       app: backend
-  
   template:
     metadata:
       labels:
         app: backend
-
     spec: 
       containers:
         - name: app-backend
           image: shepherd777/devsecops-backend:7886f9eeb23312c22b1421cbb276285336d0da78
           ports:
             - containerPort: 5000    
-        
           resources:
             requests:
               memory: "128Mi"
@@ -31,7 +27,6 @@ spec:
               memory: "256Mi"
               cpu: "500m"
 
-
           livenessProbe:
             httpGet:
               path: /health
@@ -39,24 +34,22 @@ spec:
 
           readinessProbe:
             httpGet:
-            path: /health
-            port: 5000
+              path: /health    # Fixed: Nested under httpGet
+              port: 5000    # Fixed: Nested under httpGet
             initialDelaySeconds: 5
             periodSeconds: 10
 
           imagePullPolicy: Always
 
-          env:
+          env:               # Fixed: Combined both blocks into a single list
             - name: My_Flask_App
               valueFrom:
                 configMapKeyRef:
                   name: backend-config
                   key: My_Flask_App
 
-
-          env:
             - name: DB_PASSWORD
               valueFrom:
-              secretKeyRef:
-              name: backend-secret
-              key: DB_PASSWORD
+                secretKeyRef: # Fixed: Indented secret details properly
+                  name: backend-secret
+                  key: DB_PASSWORD

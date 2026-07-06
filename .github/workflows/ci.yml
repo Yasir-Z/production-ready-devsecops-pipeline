@@ -46,7 +46,7 @@ jobs:
         with: 
           image-ref: devsecops-backend:v1
           format: 'sarif'
-          trivy-version: 'v0.72.0'
+          version: 'v0.72.0'
           output: 'trivy-results.sarif'
           exit-code: '0'
           severity: 'HIGH,CRITICAL'
