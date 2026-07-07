@@ -25,6 +25,10 @@ jobs:
       - name: Run pytest 
         working-directory: backend
         run: pytest 
+
+      - name: Run Bandit Security Scan
+        working-directory: backend
+        run: python -m bandit -r . --exclude ./test_app.py
         
   security:
     name: DevSecOps Scanning
@@ -33,10 +37,6 @@ jobs:
       - name: Checkout the code 
         uses: actions/checkout@v4
         
-      - name: Run Bandit Security Scan
-        working-directory: backend
-        run: python -m bandit -r . --exclude ./test_app.py
-
       - name: Run Dependency Vulnerability Test
         run: pip-audit
 
