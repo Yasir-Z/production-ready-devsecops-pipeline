@@ -30,6 +30,9 @@ jobs:
     name: DevSecOps Scanning
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout the code 
+        uses: actions/checkout@v4
+        
       - name: Run Bandit Security Scan
         working-directory: backend
         run: bandit -r . --exclude ./test_app.py
@@ -41,16 +44,19 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build Docker image
-        working-directory: backend
-        run: docker build -t devsecops-backend:v1 .    
-
   build:
     name: Build & Publish Image
     runs-on: ubuntu-latest
     needs: [test, security]
-    steps:
+    steps:      
+      - name: Checkout the code 
+        uses: actions/checkout@v4
+        
+      - name: Build Docker image
+        working-directory: backend
+        run: docker build -t devsecops-backend:v1 .    
+
+ 
       - name: Scan the built image
         uses: aquasecurity/trivy-action@v0.36.0
         with: 
