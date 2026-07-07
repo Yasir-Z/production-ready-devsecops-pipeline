@@ -5,7 +5,8 @@ on:
       - main
 
 jobs:
-  flask-app-pipeline:
+  test:
+    name: Lint & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -25,13 +26,13 @@ jobs:
         working-directory: backend
         run: pytest 
         
-  security-testing:
+  security:
     name: DevSecOps Scanning
     runs-on: ubuntu-latest
     steps:
       - name: Run Bandit Security Scan
         working-directory: backend
-        run: bandit -r . --exclude ./.venv,./test_app.py
+        run: bandit -r . --exclude ./test_app.py
 
       - name: Run Dependency Vulnerability Test
         run: pip-audit
@@ -48,7 +49,7 @@ jobs:
   build:
     name: Build & Publish Image
     runs-on: ubuntu-latest
-    needs: [flask-app-pipeline, security-testing]
+    needs: [test, security]
     steps:
       - name: Scan the built image
         uses: aquasecurity/trivy-action@v0.36.0
