@@ -35,7 +35,7 @@ jobs:
         
       - name: Run Bandit Security Scan
         working-directory: backend
-        run: bandit -r . --exclude ./test_app.py
+        run: python -m bandit -r . --exclude ./test_app.py
 
       - name: Run Dependency Vulnerability Test
         run: pip-audit
