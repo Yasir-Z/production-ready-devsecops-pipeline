@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: checkout the code 
         uses: actions/checkout@v4
-
+ 
       - name: setup python
         uses: actions/setup-python@v5
         with:
@@ -24,7 +24,11 @@ jobs:
       - name: Run pytest 
         working-directory: backend
         run: pytest 
-
+        
+  security-testing:
+    name: DevSecOps Scanning
+    runs-on: ubuntu-latest
+    steps:
       - name: Run Bandit Security Scan
         working-directory: backend
         run: bandit -r . --exclude ./.venv,./test_app.py
@@ -41,6 +45,11 @@ jobs:
         working-directory: backend
         run: docker build -t devsecops-backend:v1 .    
 
+  build:
+    name: Build & Publish Image
+    runs-on: ubuntu-latest
+    needs: [flask-app-pipeline, security-testing]
+    steps:
       - name: Scan the built image
         uses: aquasecurity/trivy-action@v0.36.0
         with: 
