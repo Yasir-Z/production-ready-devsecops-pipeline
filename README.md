@@ -1,41 +1,677 @@
-![act-logo](https://raw.githubusercontent.com/wiki/nektos/act/img/logo-150.png)
+# Production-Ready DevSecOps CI/CD Pipeline
 
-# Overview [![push](https://github.com/nektos/act/workflows/push/badge.svg?branch=master&event=push)](https://github.com/nektos/act/actions) [![Go Report Card](https://goreportcard.com/badge/github.com/nektos/act)](https://goreportcard.com/report/github.com/nektos/act) [![awesome-runners](https://img.shields.io/badge/listed%20on-awesome--runners-blue.svg)](https://github.com/jonico/awesome-runners)
+A production-oriented DevSecOps CI/CD pipeline for a containerized Flask application, implementing automated testing, security scanning, container vulnerability scanning, Docker image publishing, Kubernetes deployment, Blue-Green releases, rollback capability, secret management, and Slack notifications.
 
-> "Think globally, `act` locally"
+The project demonstrates how application code can move from **Git commit → security validation → container image → Kubernetes deployment → traffic switch → operational notification** through an automated CI/CD workflow.
 
-Run your [GitHub Actions](https://developer.github.com/actions/) locally! Why would you want to do this? Two reasons:
+---
 
-- **Fast Feedback** - Rather than having to commit/push every time you want to test out the changes you are making to your `.github/workflows/` files (or for any changes to embedded GitHub actions), you can use `act` to run the actions locally. The [environment variables](https://help.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables#default-environment-variables) and [filesystem](https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#filesystems-on-github-hosted-runners) are all configured to match what GitHub provides.
-- **Local Task Runner** - I love [make](<https://en.wikipedia.org/wiki/Make_(software)>). However, I also hate repeating myself. With `act`, you can use the GitHub Actions defined in your `.github/workflows/` to replace your `Makefile`!
+## 🎯 Business Problem
 
-> [!TIP]
-> **Now Manage and Run Act Directly From VS Code!**<br/>
-> Check out the [GitHub Local Actions](https://sanjulaganepola.github.io/github-local-actions-docs/) Visual Studio Code extension which allows you to leverage the power of `act` to run and test workflows locally without leaving your editor.
+Software teams need to release application changes quickly without sacrificing security, reliability, or operational visibility.
 
-# How Does It Work?
+A manual deployment process introduces several risks:
 
-When you run `act` it reads in your GitHub Actions from `.github/workflows/` and determines the set of actions that need to be run. It uses the Docker API to either pull or build the necessary images, as defined in your workflow files and finally determines the execution path based on the dependencies that were defined. Once it has the execution path, it then uses the Docker API to run containers for each action based on the images prepared earlier. The [environment variables](https://help.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables#default-environment-variables) and [filesystem](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#file-systems) are all configured to match what GitHub provides.
+* Untested code reaching deployment environments
+* Secrets accidentally committed to source control
+* Vulnerable Python dependencies
+* Vulnerable container images
+* Manual Docker image publishing
+* Deployment downtime during application updates
+* Difficulty reverting a problematic release
+* Lack of immediate deployment notifications
 
-Let's see it in action with a [sample repo](https://github.com/cplee/github-actions-demo)!
+This project addresses those problems by implementing an automated **DevSecOps CI/CD pipeline** that validates, scans, builds, publishes, deploys, and monitors the release process.
 
-![Demo](https://raw.githubusercontent.com/wiki/nektos/act/quickstart/act-quickstart-2.gif)
+---
 
-# Act User Guide
+# 🏗️ Solution Architecture
 
-Please look at the [act user guide](https://nektosact.com) for more documentation.
+```text
+                         Developer
+                             │
+                             │ git push
+                             ▼
+                    ┌─────────────────┐
+                    │     GitHub      │
+                    │   Repository    │
+                    └────────┬────────┘
+                             │
+                             ▼
+                 ┌───────────────────────┐
+                 │    GitHub Actions     │
+                 │       CI/CD           │
+                 └───────────┬───────────┘
+                             │
+             ┌───────────────┼────────────────┐
+             │               │                │
+             ▼               ▼                ▼
+          Testing         Security          Build
+          pytest          Bandit            Docker
+                         pip-audit             │
+                         Gitleaks               ▼
+                                            Trivy Scan
+                                                │
+                                                ▼
+                                         Docker Hub
+                                                │
+                                                ▼
+                                      Kubernetes / Kind
+                                                │
+                                  ┌─────────────┴─────────────┐
+                                  │                           │
+                              BLUE                        GREEN
+                            Deployment                  Deployment
+                                  │                           │
+                                  └─────────────┬─────────────┘
+                                                │
+                                         Kubernetes Service
+                                                │
+                                                ▼
+                                        Active Application
+                                                │
+                                                ▼
+                                           Slack Alert
+```
 
-# Support
+---
 
-Need help? Ask in [discussions](https://github.com/nektos/act/discussions)!
+# 🔄 CI/CD Pipeline
 
-# Contributing
+The GitHub Actions workflow follows this sequence:
 
-Want to contribute to act? Awesome! Check out the [contributing guidelines](CONTRIBUTING.md) to get involved.
+```text
+Git Push
+   │
+   ▼
+┌──────────────┐
+│     TEST     │
+│    pytest    │
+└──────┬───────┘
+       │
+       ├──────────────────┐
+       ▼                  ▼
+┌──────────────┐    ┌──────────────┐
+│   SECURITY   │    │     BUILD    │
+│    Bandit    │    │ Docker Build │
+│  pip-audit   │    │    Trivy     │
+│   Gitleaks   │    │ Docker Hub   │
+└──────┬───────┘    └──────┬───────┘
+       └──────────┬─────────┘
+                  ▼
+           Kubernetes Deploy
+                  │
+                  ▼
+             GREEN Release
+                  │
+                  ▼
+            Health Validation
+                  │
+                  ▼
+          BLUE → GREEN Traffic
+                  │
+                  ▼
+          Slack Notification
+```
 
-## Manually building from source
+The workflow is defined in:
 
-- Install Go tools 1.20+ - (<https://golang.org/doc/install>)
-- Clone this repo `git clone git@github.com:nektos/act.git`
-- Run unit tests with `make test`
-- Build and install: `make install`
+```text
+.github/workflows/cicd.yml
+```
+
+---
+
+# 🧪 Automated Testing
+
+The pipeline automatically installs the application's Python dependencies and executes the test suite using `pytest`.
+
+```bash
+pytest
+```
+
+This prevents the build/deployment stages from proceeding when the application test stage fails.
+
+---
+
+# 🔐 DevSecOps Security Controls
+
+Security is integrated directly into the CI/CD pipeline rather than being treated as a separate manual activity.
+
+## Bandit
+
+Static security analysis of the Python application:
+
+```bash
+python -m bandit -r . --exclude ./test_app.py
+```
+
+Used to identify common security issues in Python code.
+
+## pip-audit
+
+Python dependency vulnerability scanning:
+
+```bash
+pip-audit
+```
+
+This checks project dependencies against known vulnerability information.
+
+## Gitleaks
+
+Secret-leak detection is integrated into GitHub Actions to identify credentials or sensitive information accidentally committed to the repository.
+
+## Trivy
+
+The built Docker image is scanned for HIGH and CRITICAL vulnerabilities before the image is published.
+
+```text
+Application
+    │
+    ▼
+Docker Build
+    │
+    ▼
+Trivy Image Scan
+    │
+    ├── Vulnerability findings
+    │
+    ▼
+Docker Hub
+```
+
+The pipeline is configured to report HIGH/CRITICAL vulnerabilities while ignoring unfixed vulnerabilities.
+
+---
+
+# 🐳 Containerization
+
+The Flask backend is packaged as a Docker image.
+
+The CI pipeline:
+
+1. Builds the image
+2. Scans the image with Trivy
+3. Authenticates with Docker Hub
+4. Tags the image using the Git commit SHA
+5. Pushes the image to Docker Hub
+
+Example image tag:
+
+```text
+<dockerhub-user>/devsecops-backend:<git-sha>
+```
+
+Using the Git commit SHA provides immutable image identification and allows a deployed container to be traced back to a specific source-code revision.
+
+---
+
+# ☸️ Kubernetes Deployment
+
+The application is deployed to a Kubernetes cluster running on **Kind** for CI/CD integration testing.
+
+Kubernetes resources include:
+
+```text
+k8s/
+├── configmap.yml
+├── secret.yml
+├── deployment-blue.yml
+├── deployment-green.yml
+├── service.yml
+└── ingress.yml
+```
+
+The application containers expose port:
+
+```text
+5000
+```
+
+The Kubernetes Service exposes the application through:
+
+```text
+NodePort: 30080
+```
+
+---
+
+# 🔵🟢 Blue-Green Deployment
+
+The deployment strategy is designed to reduce release risk by maintaining two application versions:
+
+```text
+BLUE
+GREEN
+```
+
+The Kubernetes deployments use labels to distinguish the two environments.
+
+### BLUE
+
+```yaml
+color: blue
+```
+
+### GREEN
+
+```yaml
+color: green
+```
+
+The Service initially selects BLUE:
+
+```yaml
+selector:
+  app: backend
+  color: blue
+```
+
+The pipeline then deploys GREEN independently.
+
+---
+
+## 🚀 Release Flow
+
+```text
+                 Existing BLUE
+                      │
+                      │
+                      ▼
+               Service → BLUE
+                      │
+                      │
+                Deploy GREEN
+                      │
+                      ▼
+              GREEN Pods Start
+                      │
+                      ▼
+              Health/Readiness
+                 Validation
+                      │
+                      ▼
+              GREEN is Ready
+                      │
+                      ▼
+            Service Selector
+              BLUE → GREEN
+                      │
+                      ▼
+                Live Traffic
+                      │
+                      ▼
+                    GREEN
+```
+
+This allows the new version to become healthy before application traffic is moved to it.
+
+---
+
+# ❤️ Health Checks
+
+The application deployment uses Kubernetes health probes.
+
+### Liveness Probe
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 5000
+```
+
+### Readiness Probe
+
+```yaml
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 5000
+```
+
+The readiness probe prevents Kubernetes from considering a container ready to receive traffic until the application health endpoint responds successfully.
+
+---
+
+# 🔄 Rollback Strategy
+
+Blue-Green deployment keeps the previous BLUE deployment available after GREEN becomes active.
+
+If GREEN has a problem, traffic can be switched back:
+
+```text
+GREEN
+  │
+  │ problem detected
+  ▼
+Service selector
+  │
+  ▼
+BLUE
+```
+
+Rollback is therefore performed by changing the Service selector:
+
+```yaml
+selector:
+  app: backend
+  color: blue
+```
+
+This avoids rebuilding the previous application version just to restore service.
+
+---
+
+# 🔑 Secret Management
+
+Sensitive credentials are not hard-coded into the repository.
+
+GitHub Actions secrets are used for credentials such as:
+
+```text
+DOCKERHUB_USERNAME
+DOCKERHUB_TOKEN
+SLACK_WEBHOOK_URL
+```
+
+The workflow references them through GitHub's secrets mechanism:
+
+```yaml
+${{ secrets.DOCKERHUB_USERNAME }}
+```
+
+The Docker Hub token and Slack webhook are therefore kept outside the source code.
+
+The GitHub-provided:
+
+```text
+GITHUB_TOKEN
+```
+
+is used where required by GitHub Actions.
+
+---
+
+# 📢 Slack Notifications
+
+The pipeline sends CI/CD status notifications to Slack.
+
+The notification provides operational visibility after the workflow completes.
+
+Example successful notification:
+
+```text
+🚀 CI/CD Pipeline SUCCESS
+
+Repository: production-ready-devsecops-pipeline
+Branch: main
+Commit: 5a47862
+Deployment: Blue-Green deployment completed successfully
+```
+
+A failed pipeline generates a failure notification so that deployment problems do not depend on manually monitoring the GitHub Actions interface.
+
+---
+
+# 🛡️ Security Pipeline
+
+The project implements security controls at multiple stages:
+
+```text
+Source Code
+    │
+    ├── pytest
+    │
+    ├── Bandit
+    │
+    ├── pip-audit
+    │
+    └── Gitleaks
+          │
+          ▼
+      Docker Build
+          │
+          ▼
+      Trivy Scan
+          │
+          ▼
+      Docker Registry
+          │
+          ▼
+      Kubernetes
+```
+
+This demonstrates a shift-left security approach where security validation occurs before deployment.
+
+---
+
+# 📊 Deployment Verification
+
+The pipeline verifies Kubernetes resources after deployment using commands such as:
+
+```bash
+kubectl get deployment
+kubectl get pods
+kubectl get svc
+kubectl get endpoints
+```
+
+GREEN pods are specifically validated using:
+
+```bash
+kubectl get pods -l app=backend,color=green
+```
+
+The Service endpoints are then checked after the traffic switch.
+
+---
+
+# 📸 Screenshots & Results
+
+### 1. GitHub Actions Pipeline Blue-Green Deployment
+
+<img width="1570" height="285" alt="Slack-pipeline" src="https://github.com/user-attachments/assets/51b8db29-173e-45bb-be53-f9f141583eb2" />
+
+### 3. GREEN Pods
+
+### 5. Slack Notification
+
+<img width="1396" height="458" alt="slack-notification" src="https://github.com/user-attachments/assets/83c6a930-fc19-4898-a4ea-00d22d98bafa" />
+
+
+### 6. Security Scanning
+
+
+
+# 🧰 Technology Stack
+
+| Category               | Technology                                 |
+| ---------------------- | ------------------------------------------ |
+| Source Control         | Git / GitHub                               |
+| CI/CD                  | GitHub Actions                             |
+| Application            | Python / Flask                             |
+| Testing                | pytest                                     |
+| SAST                   | Bandit                                     |
+| Dependency Security    | pip-audit                                  |
+| Secret Detection       | Gitleaks                                   |
+| Container              | Docker                                     |
+| Container Security     | Trivy                                      |
+| Registry               | Docker Hub                                 |
+| Orchestration          | Kubernetes                                 |
+| Kubernetes Environment | Kind                                       |
+| Deployment Strategy    | Blue-Green                                 |
+| Health Checks          | Kubernetes Liveness / Readiness Probes     |
+| Notifications          | Slack                                      |
+| Configuration          | Kubernetes ConfigMap                       |
+| Secrets                | Kubernetes Secret + GitHub Actions Secrets |
+
+---
+
+# 📁 Project Structure
+
+```text
+Complete-DevSecOps-CI/CD-Pipeline/
+│
+├── .github/
+│   └── workflows/
+│       └── cicd.yml
+│
+├── backend/
+│   ├── app.py
+│   ├── requirements.txt
+│   └── ...
+│
+├── k8s/
+│   ├── configmap.yml
+│   ├── secret.yml
+│   ├── deployment-blue.yml
+│   ├── deployment-green.yml
+│   ├── service.yml
+│   └── ingress.yml
+│
+├── tests/
+│   └── ...
+│
+├── README.md
+├── LICENSE
+└── .gitignore
+```
+
+---
+
+# 🎯 Engineering Outcomes
+
+This project demonstrates an automated software delivery process that:
+
+* Validates application changes automatically
+* Integrates security into CI
+* Detects vulnerable Python dependencies
+* Detects secrets in source control
+* Scans container images for vulnerabilities
+* Builds immutable Docker images using Git commit SHA
+* Publishes images to a container registry
+* Deploys applications to Kubernetes
+* Uses health checks before traffic activation
+* Implements Blue-Green deployment
+* Keeps the previous deployment available for rollback
+* Automates traffic switching
+* Provides Slack-based operational visibility
+* Uses external secret management rather than hard-coded credentials
+
+---
+
+# 🧠 Skills Demonstrated
+
+### DevOps
+
+* Git
+* GitHub
+* GitHub Actions
+* Docker
+* Docker Hub
+* Kubernetes
+* Kind
+* CI/CD
+* Blue-Green deployments
+* Rollback strategies
+* Health checks
+
+### DevSecOps
+
+* SAST with Bandit
+* Dependency vulnerability scanning with pip-audit
+* Secret scanning with Gitleaks
+* Container security scanning with Trivy
+* Secure credential handling
+* Shift-left security
+
+### Kubernetes
+
+* Deployments
+* Services
+* ConfigMaps
+* Secrets
+* Labels and selectors
+* Readiness probes
+* Liveness probes
+* Rolling deployment concepts
+* Blue-Green deployment
+* Traffic switching
+* Rollback
+
+### Automation & Operations
+
+* GitHub Actions workflow orchestration
+* Immutable image tagging
+* Automated deployment verification
+* Slack notifications
+* CI/CD failure visibility
+
+---
+
+# 💼 Why This Project Matters
+
+This project goes beyond demonstrating individual DevOps tools.
+
+It demonstrates how those tools can be combined into an automated software delivery system:
+
+```text
+Code
+ ↓
+Test
+ ↓
+Secure
+ ↓
+Build
+ ↓
+Scan
+ ↓
+Publish
+ ↓
+Deploy
+ ↓
+Validate
+ ↓
+Switch Traffic
+ ↓
+Notify
+ ↓
+Rollback if Required
+```
+
+The key objective is to make application delivery **repeatable, security-aware, observable, and reversible** rather than dependent on manual deployment steps.
+
+---
+
+# 🚀 Future Improvements
+
+Potential production extensions include:
+
+* Deploying the same pipeline to Amazon EKS
+* Infrastructure provisioning with Terraform
+* AWS Load Balancer Controller
+* TLS/HTTPS
+* Prometheus/Grafana monitoring
+* Centralized logging
+* OpenTelemetry tracing
+* Policy enforcement with OPA/Gatekeeper or Kyverno
+* Signed container images
+* SBOM generation and verification
+* Progressive delivery/canary releases
+* GitOps with Argo CD
+
+These are intentionally outside the current implementation scope.
+
+---
+
+# 👤 Author
+
+**Yasir-Z**
+
+DevOps / DevSecOps portfolio project focused on secure automation, Kubernetes deployments, CI/CD engineering, and cloud infrastructure.
+
+GitHub:
+
+**Yasir-Z**
