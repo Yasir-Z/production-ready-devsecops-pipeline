@@ -1,31 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment
+  name: backend-green
   labels:
     app: backend
+    color: green
 spec:
   replicas: 2
   selector:
     matchLabels:
       app: backend
+      color: green
   template:
     metadata:
       labels:
         app: backend
+        color: green
     spec: 
       containers:
         - name: app-backend
-          image: shepherd777/devsecops-backend:7886f9eeb23312c22b1421cbb276285336d0da78
+          image: IMAGE_PLACEHOLDER
           ports:
             - containerPort: 5000    
           resources:
             requests:
               memory: "128Mi"
-              cpu: "100m"
+              cpu: "10m"
             limits:
               memory: "256Mi"
-              cpu: "500m"
+              cpu: "50m"
 
           livenessProbe:
             httpGet:

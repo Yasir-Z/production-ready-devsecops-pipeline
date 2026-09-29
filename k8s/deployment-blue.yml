@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-blue
+  labels:
+    app: backend
+    color: blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+      color: blue
+  template:
+    metadata:
+      labels:
+        app: backend
+        color: blue
+    spec: 
+      containers:
+        - name: app-backend
+          image: IMAGE_PLACEHOLDER
+          ports:
+            - containerPort: 5000    
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+
+          readinessProbe:
+            httpGet:
+              path: /health    # Fixed: Nested under httpGet
+              port: 5000    # Fixed: Nested under httpGet
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          imagePullPolicy: Always
+
+          env:               # Fixed: Combined both blocks into a single list
+            - name: My_Flask_App
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: My_Flask_App
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: # Fixed: Indented secret details properly
+                  name: backend-secret
+                  key: DB_PASSWORD
