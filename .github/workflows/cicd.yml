@@ -112,10 +112,8 @@ jobs:
 
       - name: Deploy Green
         run: |
-          sed -i "s|IMAGE_PLACEHOLDER|${{ secrets.DOCKERHUB_USERNAME }}/devsecops-backend:${{ github.sha }}|" \ 
-            k8s/deployment-green.yml
-          
-          kubectl apply -f k8s/deployment-green.yml  
+          sed -i "s|IMAGE_PLACEHOLDER|${{ secrets.DOCKERHUB_USERNAME }}/devsecops-backend:${{ github.sha }}|" k8s/deployment-green.yml
+          kubectl apply -f k8s/deployment-green.yml
 
       - name: Wait for Green  rollout
         run: |
@@ -125,10 +123,9 @@ jobs:
         run: |
           kubectl get pods -l app=backend,color=green
 
-      - name: Switch traffice to green
-        run: | 
-          kubectl patch service backend-service \
-            -p '{"spec":{"selector":{"app":"backend","color":"green"}}}'
+      - name: Switch traffic to green
+        run: |
+          kubectl patch service backend-service -p '{"spec":{"selector":{"app":"backend","color":"green"}}}'
 
       - name: Verify Green Endponts 
         run: |
