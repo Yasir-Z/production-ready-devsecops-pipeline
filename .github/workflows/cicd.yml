@@ -117,7 +117,7 @@ jobs:
 
       - name: Wait for Green  rollout
         run: |
-          kubectl rollout status deployment/deployment-green --timeout=120s
+          kubectl rollout status deployment/backend-green --timeout=120s
 
       - name: Verify green pods
         run: |
