@@ -152,9 +152,9 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           if [ "$STATUS" = "success" ]; then
-            MESSAGE="🚀 CI/CD Pipeline SUCCESS\nRepository: $REPOSITORY\nBranch: $BRANCH\nCommit: ${COMMIT:0:7}\nDeployment: Blue-Green deployment completed successfully"
+            MESSAGE="CI/CD Pipeline SUCCESS\nRepository: $REPOSITORY\nBranch: $BRANCH\nCommit: ${COMMIT:0:7}\nDeployment: Blue-Green deployment completed successfully"
           else
-            MESSAGE="❌ CI/CD Pipeline FAILED\nRepository: $REPOSITORY\nBranch: $BRANCH\nCommit: ${COMMIT:0:7}\nDeployment: Pipeline failed. Check GitHub Actions for details."
+            MESSAGE="CI/CD Pipeline FAILED\nRepository: $REPOSITORY\nBranch: $BRANCH\nCommit: ${COMMIT:0:7}\nDeployment: Pipeline failed. Check GitHub Actions for details."
           fi
 
           curl -X POST \
